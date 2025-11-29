@@ -9,9 +9,6 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     
-    <!-- Recharts -->
-    <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
-
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
@@ -29,13 +26,567 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        /* Typography Presets */
+        .font-dot { font-family: 'Doto', sans-serif; font-variation-settings: 'ROND' 0; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Nothing OS Style Card */
+        .sensor-card {
+            background-color: #0a0a0a; /* Very dark grey */
+            border: 1px solid #333333;
+            border-radius: 0px; /* Sharp corners as per image 55208c or slight radius */
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s ease;
+        }
+        
+        .sensor-card:hover {
+            border-color: #555555;
+        }
+
+        /* The Dotted Background Pattern */
+        .bg-dots {
+            background-image: radial-gradient(#333 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+        }
+
+        /* Utility for the Red Accent */
+        .text-nothing-red { color: #EB0029; }
+        .bg-nothing-red { background-color: #EB0029; }
+        .border-nothing-red { border-color: #EB0029; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        /* Animations */
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .animate-blink { animation: blink 2s infinite; }
+        
+        /* Chart Bars Animation */
+        @keyframes grow { from { height: 0; } to { height: var(--h); } }
+        .chart-bar { animation: grow 1s ease-out forwards; }
+    </style>
 </head>
 <body>
     <div id="root"></div>
 
-    <!-- Main Application Logic -->
-    <script type="text/babel" src="js/app.js"></script>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { createClient } = supabase;
+
+        // --- SUPABASE CONFIG ---
+        const SUPABASE_URL = "https://wpiamopnovthqpesfbuw.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwaWFtb3Bub3Z0aHFwZXNmYnV3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyMjI2ODYsImV4cCI6MjA3OTc5ODY4Nn0.cJzs_6F_W971tRs8TkvYHUF_CljQSZ2lqgwsMVLqNwE";
+        const client = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- ICONS (Inline SVG for reliability) ---
+        const Icons = {
+            Thermometer: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>,
+            Droplets: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7 16.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S7.29 6.75 7 5.3c-.29 1.45-1.14 2.8-2.29 3.76S3 11.1 3 12.25c0 2.22 1.8 4.05 4 4.05z"/><path d="M12.56 10a6 6 0 0 0-1.11 7.7"/><path d="M18 17.3c2.2 0 4-1.83 4-4.05 0-1.16-.57-2.26-1.71-3.19S18.29 7.75 18 6.3c-.29 1.45-1.14 2.8-2.29 3.76S14 12.1 14 13.25c0 2.22 1.8 4.05 4 4.05z"/></svg>,
+            Gauge: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>,
+            Wind: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>,
+            Waves: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>,
+            Speaker: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4.785a1 1 0 0 0-1.272-.736L4.5 5.5H2a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h2.5l5.228 1.451A1 1 0 0 0 11 19.215V4.785z"/><path d="M15.5 8a4.5 4.5 0 0 1 0 8"/></svg>,
+            CloudRain: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M16 20v-4"/><path d="M8 20v-4"/><path d="M12 20v-4"/></svg>,
+            Info: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>,
+            List: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+            Activity: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+            TrendingUp: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>,
+            TrendingDown: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>,
+            Minus: (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        };
+
+        // --- COMPONENTS ---
+
+        // 1. Reusable Sensor Card (Matching Reference Image 55208c)
+        const SensorCard = ({ icon: Icon, label, value, unit, status, subtext, color = "text-white" }) => (
+            <div className="sensor-card h-48 p-4 flex flex-col justify-between group">
+                {/* Dotted Background */}
+                <div className="absolute inset-0 bg-dots pointer-events-none"></div>
+                
+                {/* Header: Icon + Status Dot */}
+                <div className="relative flex justify-between items-start z-10">
+                    <div className="p-2 border border-[#333] rounded bg-black">
+                        <Icon className="w-5 h-5 text-gray-400" />
+                    </div>
+                    {/* Status Dot */}
+                    <div className={`w-2 h-2 rounded-full ${status === 'alert' ? 'bg-nothing-red animate-pulse' : 'bg-green-500'}`}></div>
+                </div>
+
+                {/* Content */}
+                <div className="relative z-10 mt-4">
+                    <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">{label}</div>
+                    <div className={`text-4xl font-normal font-dot ${color}`}>
+                        {value} <span className="text-sm font-sans text-gray-500 ml-1">{unit}</span>
+                    </div>
+                    {subtext && (
+                        <div className="mt-2 pt-2 border-t border-[#333] text-[10px] text-gray-400 flex items-center gap-2">
+                             <div className={`w-1.5 h-1.5 rounded-full ${status === 'alert' ? 'bg-nothing-red' : 'bg-blue-500'}`}></div>
+                             {subtext}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+
+        // 2. Navigation Tab
+        const NavBar = ({ activeTab, setTab }) => {
+            const tabs = [
+                { id: 'dashboard', label: 'Dashboard', icon: Icons.Activity },
+                { id: 'analytics', label: 'Analytics', icon: Icons.TrendingUp },
+                { id: 'history', label: 'History', icon: Icons.List },
+                { id: 'about', label: 'About', icon: Icons.Info },
+            ];
+
+            return (
+                <nav className="flex gap-1 bg-[#111] p-1 rounded-full border border-[#333] mb-6 inline-flex overflow-x-auto max-w-full">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setTab(tab.id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium transition-all whitespace-nowrap ${
+                                activeTab === tab.id 
+                                ? 'bg-nothing-red text-white shadow-lg shadow-red-900/20' 
+                                : 'text-gray-400 hover:text-white hover:bg-[#222]'
+                            }`}
+                        >
+                            <tab.icon className="w-4 h-4" />
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
+            );
+        };
+
+        const App = () => {
+            const [activeTab, setActiveTab] = useState('dashboard');
+            const [data, setData] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [currentTime, setCurrentTime] = useState(new Date());
+            const [connectionStatus, setConnectionStatus] = useState('Checking...');
+
+            // --- CLOCK & CONNECTION TICKER ---
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    const now = new Date();
+                    setCurrentTime(now);
+
+                    // Connection Check (Wait 1 minute timeout)
+                    if (data.length > 0) {
+                        const lastDataTime = new Date(data[0].created_at).getTime();
+                        const diff = now.getTime() - lastDataTime;
+                        // 60000ms = 1 minute
+                        setConnectionStatus(diff < 60000 ? 'Connected' : 'Disconnected');
+                    }
+                }, 1000);
+                return () => clearInterval(timer);
+            }, [data]);
+
+            // --- DATA FETCHING ---
+            const fetchData = async () => {
+                setLoading(true);
+                try {
+                    // Fetch more rows for history
+                    const { data: sensorData, error } = await client
+                        .from('new_sensor_data')
+                        .select('*')
+                        .order('created_at', { ascending: false })
+                        .limit(100);
+
+                    if (error) throw error;
+                    if (sensorData) setData(sensorData);
+                } catch (err) {
+                    console.error("Error fetching:", err);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // Initial Load & Realtime Sub
+            useEffect(() => {
+                fetchData();
+                const sub = client
+                    .channel('public:new_sensor_data')
+                    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'new_sensor_data' }, (payload) => {
+                        setData(curr => [payload.new, ...curr].slice(0, 100)); // Keep last 100 in memory
+                    })
+                    .subscribe();
+                return () => sub.unsubscribe();
+            }, []);
+
+            // --- DERIVED DATA ---
+            const latest = data[0] || {};
+            
+            // Wind Speed Calc
+            const windSpeed = useMemo(() => {
+                if (data.length < 2) return 0;
+                const now = new Date();
+                const twoMinsAgo = new Date(now.getTime() - 2 * 60 * 1000);
+                const recent = data.filter(d => new Date(d.created_at) > twoMinsAgo);
+                const count = recent.filter(d => d.hall_status === 'DETECTED').length;
+                return (count * 2.5).toFixed(1); // Calibration factor
+            }, [data]);
+
+            // Analytics / Trends
+            const analytics = useMemo(() => {
+                if (data.length < 10) return null;
+                
+                // Get two sets of samples: Current (last 5 records) vs Previous (next 5 records)
+                const currentSet = data.slice(0, 5);
+                const previousSet = data.slice(5, 10);
+                
+                // Pressure Trend
+                const avgPressCurr = currentSet.reduce((a, b) => a + b.pressure, 0) / 5;
+                const avgPressPrev = previousSet.reduce((a, b) => a + b.pressure, 0) / 5;
+                const pressDiff = avgPressCurr - avgPressPrev;
+                
+                // Temp Trend
+                const avgTempCurr = currentSet.reduce((a, b) => a + Number(b.temperature), 0) / 5;
+                const avgTempPrev = previousSet.reduce((a, b) => a + Number(b.temperature), 0) / 5;
+                const tempDiff = avgTempCurr - avgTempPrev;
+
+                let forecast = "Stable";
+                if (pressDiff < -0.5) forecast = "Storm Alert";
+                else if (pressDiff > 0.5) forecast = "Clearing Up";
+                else if (avgPressCurr < 1000) forecast = "Low Pressure";
+                else forecast = "Fair Weather";
+
+                return {
+                    pressDiff,
+                    tempDiff,
+                    forecast,
+                    avgTemp: avgTempCurr,
+                    avgPress: avgPressCurr,
+                    trendIcon: pressDiff < 0 ? Icons.TrendingDown : (pressDiff > 0 ? Icons.TrendingUp : Icons.Minus)
+                };
+            }, [data]);
+
+            // Date Formatting
+            const formattedDate = currentTime.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const formattedTime = currentTime.toLocaleTimeString('en-US', { hour12: false });
+
+            // --- RENDER PAGES ---
+
+            const renderDashboard = () => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* 1. Temp */}
+                    <SensorCard 
+                        icon={Icons.Thermometer} 
+                        label="Temperature" 
+                        value={latest.temperature?.toFixed(1) || '--'} 
+                        unit="°C"
+                        status="ok"
+                        subtext="Live Monitoring"
+                    />
+                    
+                    {/* 2. Humidity */}
+                    <SensorCard 
+                        icon={Icons.Droplets} 
+                        label="Humidity" 
+                        value={latest.humidity?.toFixed(1) || '--'} 
+                        unit="%"
+                        status="ok"
+                        subtext={latest.humidity > 80 ? "High Humidity" : "Normal"}
+                    />
+
+                    {/* 3. Pressure */}
+                    <SensorCard 
+                        icon={Icons.Gauge} 
+                        label="Atmospheric Pressure" 
+                        value={Math.round(latest.pressure) || '--'} 
+                        unit="hPa"
+                        status="ok"
+                        subtext="Barometric"
+                    />
+
+                    {/* 4. Wind */}
+                    <SensorCard 
+                        icon={Icons.Wind} 
+                        label="Wind Speed" 
+                        value={windSpeed} 
+                        unit="km/h"
+                        status="ok"
+                        subtext={latest.hall_status === "DETECTED" ? "Hall Effect Active" : "Calm"}
+                    />
+
+                    {/* 5. Gas */}
+                    <SensorCard 
+                        icon={Icons.Waves} 
+                        label="Gas Level" 
+                        value={latest.gas_level || '--'} 
+                        unit="ADC"
+                        status={latest.gas_alert === 'ALERT' ? 'alert' : 'ok'}
+                        color={latest.gas_alert === 'ALERT' ? 'text-nothing-red' : 'text-white'}
+                        subtext={latest.gas_alert === 'ALERT' ? "GAS LEAK DETECTED" : "Air Quality Safe"}
+                    />
+
+                    {/* 6. Sound */}
+                    <SensorCard 
+                        icon={Icons.Speaker} 
+                        label="Sound Level" 
+                        value={latest.sound_level || '--'} 
+                        unit="dB"
+                        status="ok"
+                        subtext="Ambient Noise"
+                    />
+
+                    {/* 7. Rain (Double Width) */}
+                    <div className="sensor-card h-48 p-4 flex flex-col justify-between group md:col-span-2">
+                         <div className="absolute inset-0 bg-dots pointer-events-none"></div>
+                         <div className="relative flex justify-between items-start z-10">
+                            <div className="p-2 border border-[#333] rounded bg-black">
+                                <Icons.CloudRain className="w-5 h-5 text-gray-400" />
+                            </div>
+                            <div className={`w-2 h-2 rounded-full ${latest.rain_alert === 'ALERT' ? 'bg-nothing-red animate-pulse' : 'bg-green-500'}`}></div>
+                        </div>
+                        <div className="relative z-10">
+                            <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Raindrop Detector</div>
+                            <div className={`text-4xl font-normal font-dot ${latest.rain_alert === 'ALERT' ? 'text-nothing-red' : 'text-white'}`}>
+                                {latest.rain_alert === 'ALERT' ? "RAINING" : "DRY"}
+                            </div>
+                             <div className="mt-2 pt-2 border-t border-[#333] text-[10px] text-gray-400">
+                                Analog Value: {latest.rain_level}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const renderAnalytics = () => {
+                if (!analytics) return <div className="text-gray-500 font-mono text-center p-12">NOT ENOUGH DATA FOR PREDICTIONS</div>;
+                
+                return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Forecast Card */}
+                        <div className="sensor-card p-6 md:col-span-2">
+                             <h2 className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-2">Algorithm Forecast</h2>
+                             <div className="flex items-center gap-4">
+                                <analytics.trendIcon className={`w-12 h-12 ${analytics.pressDiff < 0 ? 'text-nothing-red' : 'text-green-500'}`} />
+                                <div>
+                                    <div className="text-4xl font-dot">{analytics.forecast}</div>
+                                    <div className="text-xs text-gray-500 font-mono mt-1">Based on barometric slope: {analytics.pressDiff.toFixed(2)} hPa/10min</div>
+                                </div>
+                             </div>
+                        </div>
+
+                        {/* Trend Stats */}
+                        <div className="sensor-card p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xs font-bold uppercase text-gray-500">Pressure Gradient</h3>
+                                <div className={`px-2 py-1 rounded text-[10px] font-bold ${analytics.pressDiff > 0 ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
+                                    {analytics.pressDiff > 0 ? 'RISING' : 'FALLING'}
+                                </div>
+                            </div>
+                            <div className="text-2xl font-mono">{Math.abs(analytics.pressDiff).toFixed(2)} <span className="text-xs text-gray-500">hPa change</span></div>
+                        </div>
+
+                        <div className="sensor-card p-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xs font-bold uppercase text-gray-500">Thermal Trend</h3>
+                                <div className={`px-2 py-1 rounded text-[10px] font-bold ${analytics.tempDiff > 0 ? 'bg-orange-900 text-orange-300' : 'bg-blue-900 text-blue-300'}`}>
+                                    {analytics.tempDiff > 0 ? 'WARMING' : 'COOLING'}
+                                </div>
+                            </div>
+                            <div className="text-2xl font-mono">{Math.abs(analytics.tempDiff).toFixed(2)}° <span className="text-xs text-gray-500">delta</span></div>
+                        </div>
+
+                        {/* Simple Chart */}
+                        <div className="sensor-card p-6 md:col-span-2 h-64 flex flex-col">
+                             <h3 className="text-xs font-bold uppercase text-gray-500 mb-4">Temperature History (Last 20 Readings)</h3>
+                             <div className="flex-grow flex items-end gap-1 border-b border-[#333] pb-2">
+                                {data.slice(0, 20).reverse().map((d, i) => {
+                                    const h = Math.min(100, Math.max(0, (d.temperature - 10) * 4)); // Scale for chart
+                                    return (
+                                        <div key={i} className="flex-1 bg-[#333] hover:bg-nothing-red transition-colors relative group chart-bar" style={{'--h': `${h}%`}}>
+                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-black border border-[#333] text-[10px] px-1 hidden group-hover:block">
+                                                {d.temperature}°
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                             </div>
+                             <div className="flex justify-between text-[10px] text-gray-500 font-mono mt-2">
+                                <span>Oldest</span>
+                                <span>Now</span>
+                             </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderHistory = () => (
+                <div className="bg-[#0a0a0a] border border-[#333] rounded-sm overflow-hidden">
+                    <div className="p-4 border-b border-[#333] flex justify-between items-center">
+                        <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400">Historical Data (Last 100)</h2>
+                        <button onClick={fetchData} className="text-xs bg-[#222] px-3 py-1 rounded hover:text-white text-gray-400">Refresh</button>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs font-mono">
+                            <thead className="bg-[#111] text-gray-500">
+                                <tr>
+                                    <th className="p-3">Time</th>
+                                    <th className="p-3">Temp</th>
+                                    <th className="p-3">Hum</th>
+                                    <th className="p-3">Pres</th>
+                                    <th className="p-3">Wind</th>
+                                    <th className="p-3">Rain</th>
+                                    <th className="p-3">Gas</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-[#222] text-gray-300">
+                                {data.map((row) => (
+                                    <tr key={row.id} className="hover:bg-[#151515]">
+                                        <td className="p-3 text-gray-500">{new Date(row.created_at).toLocaleTimeString()}</td>
+                                        <td className="p-3">{row.temperature?.toFixed(1)}°</td>
+                                        <td className="p-3">{row.humidity}%</td>
+                                        <td className="p-3">{Math.round(row.pressure)}</td>
+                                        <td className="p-3">{row.hall_status === 'DETECTED' ? 'ACTV' : '-'}</td>
+                                        <td className={`p-3 ${row.rain_alert === 'ALERT' ? 'text-nothing-red font-bold' : ''}`}>
+                                            {row.rain_alert === 'ALERT' ? 'RAIN' : 'DRY'}
+                                        </td>
+                                        <td className={`p-3 ${row.gas_alert === 'ALERT' ? 'text-nothing-red font-bold' : ''}`}>
+                                            {row.gas_alert === 'ALERT' ? 'LEAK' : 'OK'}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+
+            const renderAbout = () => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Project Info */}
+                    <div className="space-y-6">
+                        <div className="sensor-card p-6 bg-dots">
+                             <h2 className="text-xl font-dot mb-4 text-nothing-red">About Project</h2>
+                             <p className="text-sm text-gray-400 leading-relaxed">
+                                This IoT Weather Station is a comprehensive environmental monitoring system powered by ESP32. 
+                                It utilizes a sensor fusion approach to gather real-time data on atmospheric conditions, 
+                                including Temperature (DS18B20), Humidity (DHT11), Pressure (BMP180), Rain, Gas, and Noise levels.
+                             </p>
+                             <p className="text-sm text-gray-400 mt-4">
+                                Data is transmitted securely to Supabase and visualized in real-time on this Nothing OS-inspired dashboard.
+                             </p>
+                        </div>
+                        
+                         <div className="sensor-card p-6">
+                             <h3 className="text-sm font-bold uppercase text-gray-500 mb-4">Development Team</h3>
+                             <ul className="space-y-3 text-sm">
+                                <li className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-[#222] rounded-full flex items-center justify-center text-xs">01</div>
+                                    <div>
+                                        <div className="font-bold">Lead Developer</div>
+                                        <div className="text-gray-500 text-xs">Embedded Systems & Frontend</div>
+                                    </div>
+                                </li>
+                                <li className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-[#222] rounded-full flex items-center justify-center text-xs">02</div>
+                                    <div>
+                                        <div className="font-bold">Sensor Fusion Team</div>
+                                        <div className="text-gray-500 text-xs">Hardware Calibration</div>
+                                    </div>
+                                </li>
+                             </ul>
+                        </div>
+                    </div>
+
+                    {/* Future Enhancements */}
+                    <div className="space-y-6">
+                         <div className="sensor-card p-6 border-l-4 border-l-nothing-red">
+                             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <Icons.Activity className="w-5 h-5 text-nothing-red"/>
+                                Future Roadmap
+                             </h2>
+                             
+                             <div className="space-y-6">
+                                 <div>
+                                     <h4 className="text-white font-mono text-sm mb-1">LoRa Integration</h4>
+                                     <p className="text-xs text-gray-500">
+                                         Implementing Long Range (LoRa) peer-to-peer communication to enable sensor nodes to transmit data over kilometers without WiFi dependency.
+                                     </p>
+                                 </div>
+                                 <div className="opacity-50">
+                                     <h4 className="text-white font-mono text-sm mb-1 line-through">Predictive Analytics</h4>
+                                     <p className="text-xs text-gray-500">
+                                        <span className="text-green-500 font-bold">RELEASED IN BETA.</span> Check the "Analytics" tab for real-time trend analysis.
+                                     </p>
+                                 </div>
+                                 <div>
+                                     <h4 className="text-white font-mono text-sm mb-1">Solar Power</h4>
+                                     <p className="text-xs text-gray-500">
+                                         Transitioning to a fully autonomous power system with solar panels and BMS.
+                                     </p>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            // --- MAIN LAYOUT ---
+            return (
+                <div className="min-h-screen p-6 md:p-12 max-w-7xl mx-auto">
+                    
+                    {/* TOP HEADER ROW */}
+                    <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4 border-b border-[#333] pb-6">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className={`w-2 h-2 rounded-full ${connectionStatus === 'Connected' ? 'bg-nothing-red' : 'bg-gray-500 animate-blink'}`}></div>
+                                <span className="text-[10px] font-bold tracking-widest uppercase text-nothing-red">
+                                    {connectionStatus === 'Connected' ? 'Live Monitoring' : 'Offline / Reconnecting'}
+                                </span>
+                            </div>
+                            <h1 className="text-4xl md:text-5xl font-normal tracking-tight">Weather Station</h1>
+                            <div className="text-gray-500 text-xs uppercase tracking-widest mt-1">IoT Sensor Dashboard</div>
+                        </div>
+
+                        <div className="text-right">
+                            <div className="text-4xl font-mono font-light">{formattedTime}</div>
+                            <div className="text-sm text-gray-500 font-mono">{formattedDate}</div>
+                        </div>
+                    </header>
+
+                    {/* NAVIGATION */}
+                    <NavBar activeTab={activeTab} setTab={setActiveTab} />
+
+                    {/* DYNAMIC CONTENT */}
+                    <main className="animate-fade-in">
+                        {loading && !data.length ? (
+                            <div className="h-64 flex items-center justify-center text-gray-500 font-mono animate-pulse">
+                                INITIALIZING SENSORS...
+                            </div>
+                        ) : (
+                            <>
+                                {activeTab === 'dashboard' && renderDashboard()}
+                                {activeTab === 'analytics' && renderAnalytics()}
+                                {activeTab === 'history' && renderHistory()}
+                                {activeTab === 'about' && renderAbout()}
+                            </>
+                        )}
+                    </main>
+
+                    <footer className="mt-12 text-center text-[10px] text-gray-700 font-mono uppercase">
+                        System Operational • ID: {latest.id || 'N/A'} • {connectionStatus}
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
