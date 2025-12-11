@@ -1,0 +1,303 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Weather Station Overview",
+      "purpose": "Introduce the Weather Station project, its purpose as a distributed IoT system with ESP32 edge devices, Supabase backend, and React dashboard for real-time environmental monitoring",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "System Architecture",
+      "purpose": "Explain the three-tier architecture (Edge/Cloud/Presentation layers), data flow from sensors through Supabase to visualization, and the real-time synchronization pattern",
+      "parent": "Weather Station Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Key Features and Capabilities",
+      "purpose": "Document the system's capabilities including 9-sensor data collection, real-time dashboard updates, client-side analytics and forecasting, historical data export, and graceful degradation",
+      "parent": "Weather Station Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Frontend Dashboard",
+      "purpose": "Comprehensive documentation of the React-based single-page application (index.html) that serves as the primary user interface for data visualization and analysis",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Application Architecture",
+      "purpose": "Detail the React component structure, state management patterns, useMemo optimizations, CDN dependencies, and the single-file SPA design decisions",
+      "parent": "Frontend Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Management and Real-time Sync",
+      "purpose": "Explain the dual-fetch strategy (initial load + WebSocket subscription), 100-record circular buffer, connection monitoring, and Supabase client integration",
+      "parent": "Frontend Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Dashboard View",
+      "purpose": "Document the main dashboard interface showing current sensor readings via SensorCard components, including temperature, humidity, pressure, wind speed, gas, sound, and rain detection",
+      "parent": "Frontend Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Analytics View",
+      "purpose": "Explain the analytics features including weather forecasting logic, statistical analysis (mean/median/std/IQR), trend indicators, ARIMA/SARIMA predictions using Holt-Winters smoothing, and chart visualizations",
+      "parent": "Frontend Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "History View and Data Export",
+      "purpose": "Document the historical data filtering system (date range, alerts, sorting), pagination, and export functionality (CSV, JSON, Excel formats)",
+      "parent": "Frontend Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "UI Components and Styling",
+      "purpose": "Describe reusable components like SensorCard and NavBar, custom CSS styling (Nothing OS aesthetic with dots pattern and nothing-red color), typography choices (Doto and JetBrains Mono fonts), and Tailwind CSS usage",
+      "parent": "Frontend Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Supabase Backend Integration",
+      "purpose": "Document how the system integrates with Supabase for database persistence, real-time subscriptions, and RESTful API communication",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Database Schema and API Endpoints",
+      "purpose": "Describe the new_sensor_data table structure, the /rest/v1/new_sensor_data REST endpoint, query parameters (ORDER BY created_at DESC, LIMIT 100), and data model for sensor readings",
+      "parent": "Supabase Backend Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Real-time Event Subscriptions",
+      "purpose": "Explain the postgres_changes subscription mechanism, WebSocket protocol usage, INSERT event handling, and the publish-subscribe pattern for live dashboard updates",
+      "parent": "Supabase Backend Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Authentication and Security",
+      "purpose": "Document the API key authentication mechanism (supabase_key), HTTPS/secure WebSocket usage, and header configuration for both ESP32 POST requests and frontend queries",
+      "parent": "Supabase Backend Integration",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "ESP32 Firmware",
+      "purpose": "Complete documentation of the embedded application running on ESP32 WROOM 32E microcontroller for sensor data collection and transmission",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Hardware Configuration and Pin Mapping",
+      "purpose": "Document all GPIO pin assignments, I2C bus configuration (SDA/SCL), digital input pins with pull-up resistors, analog input pins, and the complete sensor connection diagram",
+      "parent": "ESP32 Firmware",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Sensor Integration and Reading",
+      "purpose": "Explain the readAllSensors function, individual sensor libraries (Adafruit_BMP085, DHT, DallasTemperature), validation logic (NaN checks, range validation), and the status flag system (bmpReady, dhtReady, tempSensorReady)",
+      "parent": "ESP32 Firmware",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Initialization and Error Handling",
+      "purpose": "Document the setup() function's initialization sequence, sensor-by-sensor initialization with failure tolerance, WiFi connection retry logic, and the graceful degradation pattern using default values",
+      "parent": "ESP32 Firmware",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Transmission and Network Communication",
+      "purpose": "Explain the sendToSupabase function, JSON serialization (StaticJsonDocument<512>), WiFiClientSecure for HTTPS, HTTPClient POST requests, 8-second transmission cycle, and WiFi connectivity checking",
+      "parent": "ESP32 Firmware",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Sensor Details and Specifications",
+      "purpose": "Provide detailed information about each sensor: BMP180 (pressure), DHT11 (temp/humidity), DS18B20 (temperature), Hall effect switch (wind), rain sensors (digital/analog), gas sensors (digital/analog), and sound sensor (analog)",
+      "parent": "ESP32 Firmware",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Development Environment Setup",
+      "purpose": "Guide for setting up the development environment for both firmware (C/C++) and frontend (HTML/JavaScript) development",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "VS Code C/C++ Configuration",
+      "purpose": "Document the C/C++ extension configuration including compiler paths (GCC/G++), IntelliSense settings (windows-gcc-x86 mode), include path resolution (workspace scanning and exclusions), and language standards",
+      "parent": "Development Environment Setup",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Debugging Configuration",
+      "purpose": "Explain the GDB debugging setup, launch.json configuration for the 'C/C++ Runner: Debug Session', executable paths, working directory settings, pretty-printing enablement, and debug workflow",
+      "parent": "Development Environment Setup",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Build System and Compiler Settings",
+      "purpose": "Document the C_Cpp_Runner extension settings including warning flags (GCC and MSVC), compiler/linker arguments, sanitizer options (AddressSanitizer, LeakSanitizer, UndefinedBehaviorSanitizer), and build optimizations",
+      "parent": "Development Environment Setup",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Firmware Development Workflow",
+      "purpose": "Describe the complete firmware development cycle: editing main.ino, Arduino IDE or PlatformIO compilation, USB flashing to ESP32, serial monitoring, and debugging practices",
+      "parent": "Development Environment Setup",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Frontend Development and Deployment",
+      "purpose": "Explain the frontend development workflow: editing index.html, browser-based testing, CDN dependency management, and deployment to static file hosting (no build process required)",
+      "parent": "Development Environment Setup",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Data Flow and Processing",
+      "purpose": "Deep dive into how data flows through the system from sensor readings to visualization, including processing at each layer",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Edge Processing on ESP32",
+      "purpose": "Explain the minimal processing done on ESP32: sensor validation, default value substitution, JSON serialization with 512-byte limit, and the 8-second collection cycle",
+      "parent": "Data Flow and Processing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Client-Side Analytics and Calculations",
+      "purpose": "Document the sophisticated processing done in the React frontend: wind speed calculation from Hall sensor detections, trend analysis (pressure/temperature deltas), statistical analysis (simple-statistics library), and forecasting (Holt-Winters method)",
+      "parent": "Data Flow and Processing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Weather Forecasting Algorithm",
+      "purpose": "Deep dive into the ARIMA/SARIMA forecasting implementation using Triple Exponential Smoothing (Holt-Winters), alpha/beta/gamma parameters (0.3/0.1/0.1), 6-step ahead predictions, and on-edge computing rationale",
+      "parent": "Data Flow and Processing",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
