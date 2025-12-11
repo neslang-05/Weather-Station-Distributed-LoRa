@@ -21,7 +21,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -40,7 +40,7 @@
         }
         
         /* Typography Presets */
-        .font-dot { font-family: 'Doto', sans-serif; font-variation-settings: 'ROND' 0; }
+        .font-dot { font-family: 'Roboto', sans-serif; font-weight: 500; letter-spacing: 0.02em; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         
         /* Nothing OS Style Card */
@@ -118,8 +118,107 @@
 
         // --- COMPONENTS ---
 
+        // Function to convert MQ-2 ADC value to human-readable status with PPM estimation
+        const getGasStatus = (adcValue) => {
+            if (!adcValue || adcValue === '--') {
+                return { text: 'No Data', ppm: 0, color: 'text-gray-500', status: 'ok', detail: 'Waiting for sensor data' };
+            }
+            
+            const value = Number(adcValue);
+            
+            // MQ-2 PPM Estimation (calibrated for LPG)
+            // This is an approximation based on typical MQ-2 response curves
+            // Formula: PPM = ((ADC / 4095) * Rs/Ro ratio) mapped to typical ranges
+            // Clean air ~300-400 ppm, Dangerous levels >1000 ppm
+            let ppm = 0;
+            if (value < 500) {
+                ppm = 300 + (value / 500) * 100; // 300-400 ppm
+            } else if (value < 1000) {
+                ppm = 400 + ((value - 500) / 500) * 100; // 400-500 ppm
+            } else if (value < 2000) {
+                ppm = 500 + ((value - 1000) / 1000) * 300; // 500-800 ppm
+            } else if (value < 3000) {
+                ppm = 800 + ((value - 2000) / 1000) * 400; // 800-1200 ppm
+            } else {
+                ppm = 1200 + ((value - 3000) / 1095) * 800; // 1200-2000+ ppm
+            }
+            ppm = Math.round(ppm);
+            
+            if (value < 1000) {
+                return { 
+                    text: 'Air Clean', 
+                    ppm: ppm,
+                    color: 'text-green-500', 
+                    status: 'ok',
+                    detail: `${ppm} ppm - Safe air quality`
+                };
+            } else if (value < 2000) {
+                return { 
+                    text: 'Minor Detection', 
+                    ppm: ppm,
+                    color: 'text-yellow-400', 
+                    status: 'ok',
+                    detail: `${ppm} ppm - Trace amounts detected`
+                };
+            } else if (value < 3000) {
+                return { 
+                    text: 'Gas Leak Possible', 
+                    ppm: ppm,
+                    color: 'text-orange-500', 
+                    status: 'warning',
+                    detail: `${ppm} ppm - Check for leaks`
+                };
+            } else {
+                return { 
+                    text: 'DANGER - High Gas!', 
+                    ppm: ppm,
+                    color: 'text-nothing-red', 
+                    status: 'alert',
+                    detail: `${ppm} ppm - Evacuate immediately!`
+                };
+            }
+        };
+
+        // Function to convert sound sensor ADC value to dB
+        const getSoundLevel = (adcValue) => {
+            if (!adcValue || adcValue === '--') {
+                return { dB: '--', category: 'No Data', color: 'text-gray-500' };
+            }
+            
+            const value = Number(adcValue);
+            
+            // Convert ADC (0-4095) to dB (30-100 dB range for typical environments)
+            // Using logarithmic scale for more realistic sound level representation
+            // Formula: dB = minDB + (ADC/maxADC) * (maxDB - minDB)
+            const minDB = 30;  // Quiet library
+            const maxDB = 100; // Very loud environment
+            const dB = Math.round(minDB + (value / 4095) * (maxDB - minDB));
+            
+            let category = '';
+            let color = 'text-white';
+            
+            if (dB < 40) {
+                category = 'Very Quiet';
+                color = 'text-green-500';
+            } else if (dB < 55) {
+                category = 'Quiet';
+                color = 'text-blue-400';
+            } else if (dB < 70) {
+                category = 'Moderate';
+                color = 'text-yellow-400';
+            } else if (dB < 85) {
+                category = 'Loud';
+                color = 'text-orange-500';
+            } else {
+                category = 'Very Loud';
+                color = 'text-nothing-red';
+            }
+            
+            return { dB, category, color, adcValue: value };
+        };
+
         // 1. Reusable Sensor Card (Matching Reference Image 55208c)
-        const SensorCard = ({ icon: Icon, label, value, unit, status, subtext, color = "text-white" }) => (
+        const SensorCard = ({ icon: Icon, label, value, unit, status, subtext, color = "text-white", customValue }) => (
             <div className="sensor-card h-48 p-4 flex flex-col justify-between group">
                 {/* Dotted Background */}
                 <div className="absolute inset-0 bg-dots pointer-events-none"></div>
@@ -130,18 +229,18 @@
                         <Icon className="w-5 h-5 text-gray-400" />
                     </div>
                     {/* Status Dot */}
-                    <div className={`w-2 h-2 rounded-full ${status === 'alert' ? 'bg-nothing-red animate-pulse' : 'bg-green-500'}`}></div>
+                    <div className={`w-2 h-2 rounded-full ${status === 'alert' ? 'bg-nothing-red animate-pulse' : (status === 'warning' ? 'bg-orange-500 animate-pulse' : 'bg-green-500')}`}></div>
                 </div>
 
                 {/* Content */}
                 <div className="relative z-10 mt-4">
                     <div className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">{label}</div>
                     <div className={`text-4xl font-normal font-dot ${color}`}>
-                        {value} <span className="text-sm font-sans text-gray-500 ml-1">{unit}</span>
+                        {customValue || value} <span className="text-sm font-sans text-gray-500 ml-1">{unit}</span>
                     </div>
                     {subtext && (
                         <div className="mt-2 pt-2 border-t border-[#333] text-[10px] text-gray-400 flex items-center gap-2">
-                             <div className={`w-1.5 h-1.5 rounded-full ${status === 'alert' ? 'bg-nothing-red' : 'bg-blue-500'}`}></div>
+                             <div className={`w-1.5 h-1.5 rounded-full ${status === 'alert' ? 'bg-nothing-red' : (status === 'warning' ? 'bg-orange-500' : 'bg-blue-500')}`}></div>
                              {subtext}
                         </div>
                     )}
@@ -243,6 +342,8 @@
 
             // --- DERIVED DATA ---
             const latest = data[0] || {};
+            const gasStatus = useMemo(() => getGasStatus(latest.gas_level), [latest.gas_level]);
+            const soundLevel = useMemo(() => getSoundLevel(latest.sound_level), [latest.sound_level]);
             
             // Wind Speed Calc
             const windSpeed = useMemo(() => {
@@ -444,22 +545,24 @@
                     {/* 5. Gas */}
                     <SensorCard 
                         icon={Icons.Waves} 
-                        label="Gas Level" 
-                        value={latest.gas_level || '--'} 
-                        unit="ADC"
-                        status={latest.gas_alert === 'ALERT' ? 'alert' : 'ok'}
-                        color={latest.gas_alert === 'ALERT' ? 'text-nothing-red' : 'text-white'}
-                        subtext={latest.gas_alert === 'ALERT' ? "GAS LEAK DETECTED" : "Air Quality Safe"}
+                        label="Combustible Gas Level (MQ-2)" 
+                        value={gasStatus.ppm || '--'} 
+                        customValue={null}
+                        unit="ppm"
+                        status={gasStatus.status}
+                        color={gasStatus.color}
+                        subtext={`${gasStatus.text} • ADC: ${latest.gas_level || '--'}`}
                     />
 
                     {/* 6. Sound */}
                     <SensorCard 
                         icon={Icons.Speaker} 
                         label="Sound Level" 
-                        value={latest.sound_level || '--'} 
+                        value={soundLevel.dB} 
                         unit="dB"
                         status="ok"
-                        subtext="Ambient Noise"
+                        color={soundLevel.color}
+                        subtext={`${soundLevel.category} • ADC: ${soundLevel.adcValue || '--'}`}
                     />
 
                     {/* 7. Rain (Double Width) */}
@@ -1022,6 +1125,9 @@
                              </p>
                              <p className="text-sm text-gray-400 mt-4">
                                 Data is transmitted securely to Supabase and visualized in real-time on this Nothing OS-inspired dashboard.
+                             </p>
+                            <p className="text-sm text-gray-400 mt-4">
+                                https://github.com/neslang-05/Weather-Station-Distributed-LoRa.git
                              </p>
                         </div>
                         
