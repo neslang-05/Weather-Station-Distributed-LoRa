@@ -82,8 +82,8 @@ void readAllSensors(float &h, float &t, float &p, int &gas_a, int &rain_a, int &
   // Read Digital/Switch Sensors
   hall_s = (digitalRead(HALL_SWITCH_PIN) == LOW) ? "DETECTED" : "OK";
   
-  // Read Digital Alert Pins
-  rain_d = (digitalRead(RAIN_DIGITAL_PIN) == LOW) ? "ALERT" : "OK";
+  // Rain alert derived from analog threshold (<2000 => WET)
+  rain_d = (rain_a < 2000) ? "ALERT" : "OK";
   gas_d = (digitalRead(GAS_DIGITAL_PIN) == LOW) ? "ALERT" : "OK";
 }
 
