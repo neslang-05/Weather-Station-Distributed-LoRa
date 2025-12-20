@@ -1,5 +1,5 @@
 // =========================================================================
-// PROJECT:      IoT Weather Station to Supabase (Avg Temp & Pressure)
+// PROJECT:      IoT Weather Station to Supabase
 // -------------------------------------------------------------------------
 // AUTHOR/USER:  Nilambar Elangbam      
 // GitHub:       https://github.com/neslang-05

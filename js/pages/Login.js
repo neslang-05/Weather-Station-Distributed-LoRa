@@ -99,7 +99,7 @@ window.Login = ({ onLoginSuccess }) => {
             const { error } = await client.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.origin
+                    redirectTo: window.location.href.split('?')[0] // Returns to the current page without query params
                 }
             });
             if (error) throw error;
