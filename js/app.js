@@ -269,14 +269,14 @@ try {
                 <div className="fixed inset-0 bg-dots pointer-events-none z-0"></div>
                 
                 {/* Top Status Bar */}
-                <div className="relative z-50 flex justify-between items-center mb-6 text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-widest border-b border-[var(--border-color)] pb-2">
+                {/* <div className="relative z-50 flex justify-between items-center mb-6 text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-widest border-b border-[var(--border-color)] pb-2">
                     
                     <div className="flex items-center gap-2">
                         <span className={connectionStatus === 'Connected' ? 'text-green-500' : 'text-nothing-red'}>{connectionStatus}</span>
                         <span>•</span>
                         <span>{new Date().getFullYear()}</span>
                     </div>
-                </div>
+                </div> */}
 
                 <header className="relative z-50 mb-12 border-b border-[var(--border-color)] pb-8">
                     {/* Navigation Bar First */}
@@ -302,7 +302,7 @@ try {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-3">
-                                <div className={`w-2.5 h-2.5 ${connectionStatus === 'Connected' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-gray-500 animate-blink'}`}></div>
+                                <div className={`w-2.5 h-2.5 ${connectionStatus === 'Connected' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-red-500 animate-blink'}`}></div>
                                 <span className={`text-[11px] font-bold tracking-[0.2em] uppercase ${connectionStatus === 'Connected' ? 'text-green-500' : 'text-nothing-red'}`}>
                                     {connectionStatus === 'Connected' ? 'System Online' : 'System Offline'} • ID: {latest.id || '13829'}
                                 </span>
