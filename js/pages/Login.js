@@ -96,13 +96,8 @@ window.Login = ({ onLoginSuccess }) => {
         setError('');
         setLoading(true);
         try {
-            // Dynamically determine the redirect URL based on where the app is hosted
-            let redirectUrl = window.location.origin;
-            
-            // If on GitHub Pages, we must include the repository subfolder
-            if (window.location.hostname.includes('github.io')) {
-                redirectUrl = 'https://neslang-05.github.io/Weather-Station-Distributed-LoRa/';
-            }
+            // For GitHub Pages, we need the exact URL including the repository name
+            const redirectUrl = 'https://neslang-05.github.io/Weather-Station-Distributed-LoRa/';
             
             const { error } = await client.auth.signInWithOAuth({
                 provider: 'google',

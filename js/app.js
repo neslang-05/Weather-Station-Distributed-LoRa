@@ -268,6 +268,16 @@ try {
             <div className="min-h-screen p-4 md:p-8 lg:p-12 max-w-7xl mx-auto transition-colors duration-300 relative">
                 <div className="fixed inset-0 bg-dots pointer-events-none z-0"></div>
                 
+                {/* Top Status Bar */}
+                <div className="relative z-50 flex justify-between items-center mb-6 text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-widest border-b border-[var(--border-color)] pb-2">
+                    
+                    <div className="flex items-center gap-2">
+                        <span className={connectionStatus === 'Connected' ? 'text-green-500' : 'text-nothing-red'}>{connectionStatus}</span>
+                        <span>•</span>
+                        <span>{new Date().getFullYear()}</span>
+                    </div>
+                </div>
+
                 <header className="relative z-50 mb-12 border-b border-[var(--border-color)] pb-8">
                     {/* Navigation Bar First */}
                     <div className="flex items-center justify-between mb-8 gap-4">
@@ -294,7 +304,7 @@ try {
                             <div className="flex items-center gap-3">
                                 <div className={`w-2.5 h-2.5 ${connectionStatus === 'Connected' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-gray-500 animate-blink'}`}></div>
                                 <span className={`text-[11px] font-bold tracking-[0.2em] uppercase ${connectionStatus === 'Connected' ? 'text-green-500' : 'text-nothing-red'}`}>
-                                    {connectionStatus === 'Connected' ? 'System Online' : 'System Offline'}
+                                    {connectionStatus === 'Connected' ? 'System Online' : 'System Offline'} • ID: {latest.id || '13829'}
                                 </span>
                             </div>
                             <h1 className="text-3xl md:text-3xl font-bold tracking-tighter leading-none text-[var(--text-primary)]">Environmental Data Monitoring Station</h1>
@@ -329,10 +339,6 @@ try {
                             </>
                         )}
                     </main>
-
-                    <footer className="mt-16 pt-8 border-t border-[var(--border-color)] text-center text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-widest">
-                        System Operational • ID: {latest.id || 'N/A'} • <span className={connectionStatus === 'Connected' ? 'text-green-500' : 'text-nothing-red'}>{connectionStatus}</span> • {new Date().getFullYear()}
-                    </footer>
                 </div>
             </div>
         );
