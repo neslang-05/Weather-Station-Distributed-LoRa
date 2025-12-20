@@ -292,8 +292,8 @@ try {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-3">
-                                <div className={`w-2.5 h-2.5 ${connectionStatus === 'Connected' ? 'bg-nothing-red shadow-[0_0_8px_rgba(235,0,41,0.5)]' : 'bg-gray-500 animate-blink'}`}></div>
-                                <span className="text-[11px] font-bold tracking-[0.2em] uppercase text-nothing-red">
+                                <div className={`w-2.5 h-2.5 ${connectionStatus === 'Connected' ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-gray-500 animate-blink'}`}></div>
+                                <span className={`text-[11px] font-bold tracking-[0.2em] uppercase ${connectionStatus === 'Connected' ? 'text-green-500' : 'text-nothing-red'}`}>
                                     {connectionStatus === 'Connected' ? 'System Online' : 'System Offline'}
                                 </span>
                             </div>
@@ -331,7 +331,7 @@ try {
                     </main>
 
                     <footer className="mt-16 pt-8 border-t border-[var(--border-color)] text-center text-[10px] text-[var(--text-secondary)] font-mono uppercase tracking-widest">
-                        System Operational • ID: {latest.id || 'N/A'} • {connectionStatus} • {new Date().getFullYear()}
+                        System Operational • ID: {latest.id || 'N/A'} • <span className={connectionStatus === 'Connected' ? 'text-green-500' : 'text-nothing-red'}>{connectionStatus}</span> • {new Date().getFullYear()}
                     </footer>
                 </div>
             </div>
