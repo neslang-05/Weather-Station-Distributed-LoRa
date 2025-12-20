@@ -1,0 +1,353 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{url}
+
+% Page Geometry
+\geometry{margin=1in}
+
+% Header and Footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{CS4760 - Elective III IoT Weather Station Project}
+\fancyfoot[C]{Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Code Listing Style
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+    numbers=left,
+    numberstyle=\tiny,
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+    showstringspaces=false
+}
+
+\begin{document}
+
+% --- TITLE PAGE ---
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\huge \textbf{Technical Report: IoT-Based Weather and Environmental Monitoring System}\par}
+    \vspace{1cm}
+    {\Large CS4760 - Elective III (IoT Lab)\par}
+    \vspace{2cm}
+    {\Large \textbf{Submitted by:}\par}
+    \vspace{0.5cm}
+    {\large 01 Nilambar Elangbam\par}
+    {\large 02 Joymangol Chingangbam\par}
+    {\large 03 Justin Ngangbam\par}
+    \vspace{2cm}
+    {\Large Department of Computer Science and Engineering\par}
+    {\Large Manipur Technical University (MTU)\par}
+    \vspace{2cm}
+    {\Large December 13, 2025\par}
+\end{titlepage}
+
+% --- ABSTRACT ---
+\section*{Abstract}
+This report details the design, implementation, and analysis of a comprehensive IoT-based Weather and Environmental Monitoring System. The project aims to provide real-time acquisition of meteorological data, including temperature, humidity, atmospheric pressure, air quality, and precipitation. The system architecture utilizes an ESP32 WROOM-32E microcontroller as the sensor node, which transmits data via secure HTTPS protocols to a Supabase cloud infrastructure utilizing PostgreSQL. A modern, React-based web dashboard provides data visualization, statistical analysis, and forecasting capabilities using Edge computing principles. This report covers the hardware specifications, firmware logic, database schema, and frontend analytics, concluding with a performance evaluation and future roadmap.
+
+\vspace{0.5cm}
+\noindent \textbf{Keywords:} Internet of Things (IoT), ESP32, Supabase, React, Environmental Monitoring, Edge Analytics, Weather Forecasting.
+
+\newpage
+\tableofcontents
+\newpage
+
+% --- SECTION 1: INTRODUCTION ---
+\section{Introduction}
+Environmental monitoring has evolved from a niche scientific endeavor into a critical component of modern urban planning, precision agriculture, and disaster mitigation. As climate variability becomes increasingly pronounced due to global warming, the demand for hyper-local, real-time meteorological data has surged. Traditional weather observation systems, while highly precise, are often characterized by prohibitively high deployment costs, centralized architectures, and significant latency in data accessibility. These limitations render them unsuitable for dense, distributed deployment in rapidly changing urban micro-climates.
+
+The advent of the Internet of Things (IoT) has fundamentally disrupted this paradigm. By leveraging low-power, high-performance microcontrollers and ubiquitous wireless connectivity, IoT enables the creation of distributed sensor networks that granularize environmental data at a scale previously unattainable. This shift allows for the transition from sparse, static observation points to dynamic, interconnected sensor grids.
+
+This project presents the design and implementation of a modular IoT Weather Station utilizing the ESP32 WROOM-32E platform. By converging embedded systems with modern cloud computing architectures, the proposed system offers a holistic solution for acquiring, transmitting, and analyzing critical environmental parameters. The system goes beyond standard metrics—such as temperature and humidity—to include air quality (gas) monitoring, noise pollution levels, and precipitation detection. Furthermore, the integration of a React-based dashboard with Edge computing capabilities addresses the growing need for decentralized data analytics, allowing for real-time forecasting and trend analysis without heavy server-side dependencies.
+
+% --- SECTION 2: PROBLEM DEFINITION ---
+\section{Problem Definition and Objectives}
+\subsection{Problem Statement}
+Despite the availability of commercial weather monitoring solutions, significant technical and economic barriers impede their widespread adoption, particularly in educational and developing contexts.
+\begin{enumerate}
+    \item \textbf{Cost and Accessibility:} Industrial-grade meteorological stations typically cost thousands of dollars and require specialized maintenance infrastructure.
+    \item \textbf{Data Silos:} Consumer-grade IoT weather devices often operate within "walled gardens," storing user data in proprietary clouds with limited API access.
+    \item \textbf{Integration Complexity:} Existing open-source DIY solutions often suffer from fragmentation, relying on legacy protocols or lacking robust error handling.
+\end{enumerate}
+
+\subsection{Project Objectives}
+To address the identified gaps, this project aims to achieve the following technical objectives:
+\begin{itemize}
+    \item \textbf{Sensor Fusion Implementation:} To engineer a robust hardware node capable of aggregating data from seven distinct heterogeneous sensors.
+    \item \textbf{Secure Cloud Architecture:} To establish a secure data pipeline utilizing HTTPS/TLS encryption and JSON serialization for reliable ingestion into a Supabase database.
+    \item \textbf{Modern Visualization Stack:} To develop a high-performance, responsive web dashboard using React 18 and Tailwind CSS.
+    \item \textbf{Edge Analytics Capability:} To implement client-side statistical algorithms, specifically Holt-Winters Triple Exponential Smoothing, for autonomous forecasting.
+\end{itemize}
+
+% --- SECTION 3: SYSTEM ARCHITECTURE ---
+\section{System Architecture}
+\subsection{High-Level Design}
+The system follows a three-tier IoT architecture: the Perception Layer (Sensors), the Network/Processing Layer (ESP32), and the Application Layer (Cloud Frontend).
+
+\begin{center}
+    [Sensors] $\rightarrow$ [ESP32 Node] $\xrightarrow{\text{WiFi/HTTPS}}$ [Supabase Cloud] $\xrightarrow{\text{WebAPI}}$ [React Dashboard]
+\end{center}
+
+\subsection{Component Breakdown}
+\begin{table}[H]
+\centering
+\caption{System Component Breakdown}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Layer & Technology & Purpose \\
+\midrule
+Hardware & ESP32 WROOM-32E & Microcontroller \& WiFi Connectivity \\
+Sensors & DHT11, BMP180, MQ-2 & Environmental Data Collection \\
+Communication & WiFi + HTTPS & Secure Data Transmission \\
+Backend & Supabase (PostgreSQL) & Cloud Database \& Realtime API \\
+Frontend & React 18 + Tailwind CSS & Dashboard Visualization \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% --- SECTION 4: HARDWARE IMPLEMENTATION ---
+\section{Hardware Implementation}
+\subsection{Microcontroller Specifications}
+The ESP32 WROOM-32E was selected as the core controller due to its dual-core Tensilica LX6 processor (240 MHz), 4MB flash memory, and integrated 802.11 b/g/n WiFi.
+
+\subsection{Sensor Suite and Interfacing}
+\begin{table}[H]
+\centering
+\caption{Sensor Pin Mapping and Interface Configuration}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Sensor & Type & Interface & GPIO Pin \\
+\midrule
+DHT11 & Digital & OneWire & 14 \\
+BMP180 & Digital & I2C & SDA:21, SCL:22 \\
+DS18B20 & Digital & OneWire & 27 \\
+MQ-2 (Gas) & Analog/Digital & ADC/GPIO & 34 (A), 12 (D) \\
+Rain Sensor & Analog/Digital & ADC/GPIO & 39 (A), 17 (D) \\
+Sound Sensor & Analog & ADC & 36 \\
+Hall Effect & Digital & GPIO & 16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Circuit Design Considerations}
+The Analog-to-Digital Converter (ADC1) channels were specifically selected (GPIO 34, 36, 39) because ADC2 channels on the ESP32 cannot be used simultaneously with WiFi functionality.
+
+% --- SECTION 5: FIRMWARE ANALYSIS ---
+\section{Firmware Analysis}
+\subsection{Core Logic Flow}
+The main control loop operates on an 8-second interval:
+\begin{enumerate}
+    \item \textbf{Sensor Acquisition:} The \texttt{readAllSensors()} function aggregates data with error handling.
+    \item \textbf{Serialization:} Data is formatted into a JSON string.
+    \item \textbf{Transmission:} The \texttt{sendToSupabase()} function initiates an HTTPS POST request.
+\end{enumerate}
+
+\subsection{Data Transmission Implementation}
+\begin{lstlisting}[language=C++, caption=Supabase Data Transmission Function]
+void sendToSupabase(float temp, float hum, float pres, ...) {
+  HTTPClient http;
+  client.setInsecure(); // Note: See Security Section
+  if (http.begin(client, serverUrl)) {
+    http.addHeader("Content-Type", "application/json");
+    http.addHeader("apikey", supabaseKey);
+    http.addHeader("Authorization", "Bearer " + supabaseKey);
+    String jsonPayload = "{";
+    jsonPayload += "\"temperature\":" + String(temp) + ",";
+    // ... additional fields ...
+    jsonPayload += "}";
+    int httpResponseCode = http.POST(jsonPayload);
+  }
+}
+\end{lstlisting}
+
+% --- SECTION 6: SOFTWARE AND ANALYTICS ---
+\section{Software and Analytics Stack}
+\subsection{Database Schema}
+Supabase (PostgreSQL) is used for persistence. The primary table, \texttt{new\_sensor\_data}, includes columns for environmental parameters and status flags.
+
+\subsection{Frontend Dashboard}
+The user interface is built with React 18 and styled using Tailwind CSS. Real-time updates are achieved via Supabase’s WebSocket subscription:
+\begin{lstlisting}[language=JavaScript, caption=Real-time Subscription Logic]
+const sub = client
+  .channel('public:new_sensor_data')
+  .on('postgres_changes', 
+    { event: 'INSERT', schema: 'public', table: 'new_sensor_data' }, 
+    (payload) => {
+      setData(curr => [payload.new, ...curr].slice(0, 100));
+    })
+  .subscribe();
+\end{lstlisting}
+
+\subsection{Edge Computing and Forecasting}
+\subsubsection{Forecasting Algorithm}
+The system employs a simplified Holt-Winters Triple Exponential Smoothing algorithm.
+\begin{equation}
+L_t = \alpha(Y_t - S_{t-s}) + (1 - \alpha)(L_{t-1} + T_{t-1})
+\end{equation}
+\begin{equation}
+T_t = \beta(L_t - L_{t-1}) + (1 - \beta)T_{t-1}
+\end{equation}
+Where $\alpha = 0.3$, $\beta = 0.1$, and $\gamma = 0.1$ were empirically selected.
+
+% --- SECTION 7: THEORETICAL FRAMEWORK ---
+\section{Theoretical Framework and Algorithms}
+\subsection{Sensor Calibration and Physics}
+\subsubsection{MQ-2 Gas Sensor Calibration}
+The sensor output voltage ($V_{out}$) is converted to resistance $R_s$ using:
+\begin{equation}
+R_s = \left( \frac{V_{cc}}{V_{out}} - 1 \right) \times R_L
+\end{equation}
+The concentration of gas (ppm) follows:
+\begin{equation}
+\log(ppm) = m \log\left( \frac{R_s}{R_0} \right) + b
+\end{equation}
+
+\subsubsection{Wind Speed Calculation (Hall Effect)}
+The wind speed $V_w$ is calculated as:
+\begin{equation}
+V_w = \frac{C \times N}{T \times 2\pi r}
+\end{equation}
+
+\subsection{Predictive Analytics: Holt-Winters Method}
+The recursive smoothing equations are defined as:
+\begin{equation}
+L_t = \alpha(Y_t - S_{t-s}) + (1 - \alpha)(L_{t-1} + T_{t-1})
+\end{equation}
+\begin{equation}
+T_t = \beta(L_t - L_{t-1}) + (1 - \beta)T_{t-1}
+\end{equation}
+\begin{equation}
+S_t = \gamma(Y_t - L_t) + (1 - \gamma)S_{t-s}
+\end{equation}
+The forecast for $k$ steps ahead is:
+\begin{equation}
+F_{t+k} = L_t + k T_t + S_{t+k-s}
+\end{equation}
+
+% --- SECTION 8: DETAILED IMPLEMENTATION ---
+\section{Detailed System Implementation}
+\subsection{Power Supply and Management}
+The system is powered via a 5V Micro-USB source, regulated to 3.3V by the AMS1117 regulator.
+\begin{itemize}
+    \item \textbf{3.3V Domain:} Powers ESP32, DHT11, and BMP180.
+    \item \textbf{5.0V Domain:} Powers MQ-2 Gas sensor and Rain Sensor comparator.
+\end{itemize}
+
+\subsection{Database Schema Design}
+\begin{table}[H]
+\centering
+\caption{Detailed Database Schema: new\_sensor\_data}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Column Name & Data Type & Constraints & Description \\
+\midrule
+id & bigint & PK, Identity & Unique identifier \\
+created\_at & timestamptz & Default: now() & Server timestamp \\
+temperature & float4 & Not Null & Ambient temp (°C) \\
+humidity & float4 & Check (0-100) & Humidity (\%) \\
+pressure & float4 & & Pressure (hPa) \\
+gas\_level & int4 & & Raw ADC (0-4095) \\
+rain\_level & int4 & & Raw ADC (0-4095) \\
+sound\_level & int4 & & Raw ADC (0-4095) \\
+hall\_status & text & & Wind status flag \\
+gas\_alert & text & Default: 'OK' & Alert flag \\
+rain\_alert & text & Default: 'OK' & Alert flag \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Network Security Configuration}
+Production architecture mandates:
+\begin{enumerate}
+    \item \textbf{TLS/SSL Pinning:} Embedding Root CA certificate.
+    \item \textbf{API Key Rotation:} Implementing secure handshakes.
+\end{enumerate}
+
+% --- SECTION 9: TESTING ---
+\section{Testing and Validation}
+\subsection{Unit Testing Strategy}
+\begin{table}[H]
+\centering
+\caption{Hardware Unit Test Cases}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Component & Expected Outcome & Pass/Fail \\
+\midrule
+ESP32 WiFi & IP Address assigned & Pass \\
+DHT11 & Variation within $\pm 2^\circ$C & Pass \\
+MQ-2 & ADC value spike $> 2000$ & Pass \\
+BMP180 & Deviation $< 5$ hPa & Pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Integration Testing}
+Total Latency: $\approx 1.5$ seconds per cycle, well within the 8-second polling interval.
+
+% --- SECTION 10: GALLERY ---
+\section{Hardware Component Gallery}
+Visual references for core hardware components: ESP32 DevKit V1, DHT11, BMP180, MQ-2, Rain Sensor, Sound Sensor, Hall Effect Sensor, DS18B20, and OLED Display.
+
+% --- SECTION 11: COST ---
+\section{Project Cost and Bill of Materials}
+\begin{table}[H]
+\centering
+\caption{Bill of Materials (BOM)}
+\begin{tabular}{@{}lll@{}}
+\toprule
+Item & Qty & Est. Cost (INR) \\
+\midrule
+ESP32 DevKit V1 & 1 & 550.00 \\
+DHT11 Sensor & 1 & 120.00 \\
+BMP180 Barometric & 1 & 180.00 \\
+MQ-2 Gas Sensor & 1 & 150.00 \\
+Rain Sensor & 1 & 100.00 \\
+Others (Wires, PCB, etc.) & - & 700.00 \\
+\midrule
+\textbf{Total} & & \textbf{1,800.00} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\appendix
+\section{Pin Configuration Reference}
+Complete ESP32 GPIO Pin Assignment Matrix includes GPIO 12 (MQ-2), 14 (DHT11), 16 (Hall), 17 (Rain), 21/22 (I2C), 27 (DS18B20), 34 (MQ-2 Analog), 36 (Sound), and 39 (Rain Analog).
+
+\section{Software Installation Guide}
+Includes prerequisites (Arduino IDE, Node.js), Backend Setup (Supabase project creation), and Firmware Deployment (Library installation and variable updates).
+
+\section{Results and Discussion}
+The system achieves $\approx 7.5$ readings per minute. Security analysis identifies risks in hardcoded keys and suggests environment variables for mitigation.
+
+\section{Future Scope}
+Includes LoRa integration, solar power management, and mobile application development.
+
+\section{Conclusion}
+The project successfully demonstrates a full-stack IoT approach to environmental monitoring, providing reliable real-time data visualization and analytics.
+
+\begin{thebibliography}{9}
+\bibitem{esp32} Espressif Systems, ``ESP32-WROOM-32E Datasheet,'' 2023.
+\bibitem{supabase} Supabase Documentation, \url{https://supabase.com/docs}.
+\bibitem{react} Meta Open Source, ``React Documentation,'' v18.2.0.
+\bibitem{holt} C. C. Holt, ``Forecasting seasonals and trends,'' 2004.
+\end{thebibliography}
+
+\end{document}
