@@ -96,10 +96,13 @@ window.Login = ({ onLoginSuccess }) => {
         setError('');
         setLoading(true);
         try {
+            // For GitHub Pages, we need the exact URL including the repository name
+            const redirectUrl = 'https://neslang-05.github.io/Weather-Station-Distributed-LoRa/';
+            
             const { error } = await client.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: window.location.href.split('?')[0] // Returns to the current page without query params
+                    redirectTo: redirectUrl
                 }
             });
             if (error) throw error;
