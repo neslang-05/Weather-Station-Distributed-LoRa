@@ -1,10 +1,19 @@
 // =========================================================================
-// ==      ESP32 WROOM 32E - Supabase Data Sender (AVERAGE TEMP FIXED)   ==
+// PROJECT:      IoT Weather Station to Supabase (Avg Temp & Pressure)
+// -------------------------------------------------------------------------
+// AUTHOR/USER:  Nilambar Elangbam      
+// GitHub:       https://github.com/neslang-05
+// DATE:         2025-12-20
+// BOARD:        ESP32 WROOM 32E
 // =========================================================================
-// Features:
-// 1. Calculates Average Temperature from (DHT + BMP + DS18B20)
-// 2. Sends Pressure from BMP
-// 3. Handles Sensor Failures gracefully
+// DESCRIPTION:
+// Collects environmental data from multiple sensors:
+//  - Temperature: Average of DHT11 + BMP180 + DS18B20
+//  - Pressure:    BMP180
+//  - Humidity:    DHT11
+//  - Analog:      Gas, Rain, Sound
+//  - Digital:     Hall Effect, Gas Alert, Rain Alert
+// Sends data securely to Supabase via HTTPS REST API.
 // =========================================================================
 
 #include <WiFi.h>

@@ -1,0 +1,269 @@
+:root {
+    --bg-primary: #f4f4f5;
+    --bg-secondary: #ffffff;
+    --bg-secondary-rgb: 255, 255, 255;
+    --text-primary: #09090b;
+    --text-secondary: #71717a;
+    --border-color: #e4e4e7;
+    --accent-red: #EB0029;
+    --accent-blue: #3b82f6;
+    --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --card-glow: none;
+    --spacing-unit: 8px;
+}
+
+/* Global box-sizing and overflow control */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+.dark {
+    --bg-primary: radial-gradient(circle at top, #1a1a1a 0%, #000000 100%);
+    --bg-secondary: #0a0a0a;
+    --bg-secondary-rgb: 10, 10, 10;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --border-color: #27272a;
+    --card-shadow: none;
+    --card-glow: 0 0 20px rgba(235, 0, 41, 0.05);
+}
+
+body {
+    background: var(--bg-primary);
+    background-attachment: fixed;
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Root container overflow control */
+#root {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* Typography Presets */
+.font-dot { font-family: 'Inter', sans-serif; font-weight: 600; letter-spacing: -0.02em; }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+.numeric-tabular { font-variant-numeric: tabular-nums; }
+
+/* Nothing OS Style Card */
+.sensor-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 0;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--card-shadow);
+}
+
+.sensor-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-red);
+    box-shadow: var(--card-glow), 0 10px 15px -3px rgb(0 0 0 / 0.1);
+}
+
+/* The Dotted Background Pattern */
+.bg-dots {
+    background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+    background-size: 24px 24px;
+    opacity: 0.4;
+}
+
+/* Tooltip Styles */
+[data-tooltip] {
+    position: relative;
+    cursor: help;
+}
+
+[data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.95);
+    padding: 8px 12px;
+    background: var(--text-primary);
+    color: var(--bg-secondary);
+    font-size: 11px;
+    border-radius: 0;
+    white-space: normal;
+    width: 180px;
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.2s ease;
+    z-index: 100;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.3);
+    pointer-events: none;
+    line-height: 1.4;
+}
+
+/* Glass Effect */
+.glass {
+    background: rgba(var(--bg-secondary-rgb), 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Button Styles */
+.btn-nothing {
+    padding: 10px 20px;
+    border-radius: 0;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: all 0.2s ease;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.btn-nothing:hover {
+    background: var(--text-primary);
+    color: var(--bg-secondary);
+    border-color: var(--text-primary);
+}
+
+.btn-nothing-primary {
+    background: var(--accent-red);
+    color: white;
+    border-color: var(--accent-red);
+}
+
+.btn-nothing-primary:hover {
+    background: #c40022;
+    border-color: #c40022;
+    color: white;
+}
+
+[data-tooltip]:hover::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) scale(1);
+}
+
+/* Utility for the Red Accent */
+.text-nothing-red { color: var(--accent-red); }
+.bg-nothing-red { background-color: var(--accent-red); }
+.border-nothing-red { border-color: var(--accent-red); }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+
+/* Mobile Menu Styles */
+.mobile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 320px;
+    background: var(--bg-secondary);
+    border-left: 1px solid var(--border-color);
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-menu.open {
+    transform: translateX(0);
+}
+
+.hamburger-btn {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1001;
+    position: relative;
+}
+
+.hamburger-btn:hover {
+    border-color: var(--accent-red);
+}
+
+.hamburger-line {
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    transition: all 0.3s ease;
+}
+
+.hamburger-btn.open .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translateY(7px);
+}
+
+.hamburger-btn.open .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.hamburger-btn.open .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translateY(-7px);
+}
+
+@media (max-width: 768px) {
+    .hamburger-btn {
+        display: flex;
+    }
+    
+    /* Mobile-specific overflow fixes */
+    * {
+        max-width: 100%;
+    }
+    
+    body {
+        overflow-x: hidden;
+    }
+    
+    /* Reduce padding on mobile */
+    .sensor-card {
+        padding: 12px;
+    }
+    
+    /* Ensure tooltips don't cause overflow */
+    [data-tooltip]::before {
+        max-width: 200px;
+        font-size: 10px;
+    }
+}
+
+/* Animations */
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.animate-blink { animation: blink 2s infinite; }
+
+/* Fade In Animation */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
